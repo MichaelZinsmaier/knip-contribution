@@ -98,7 +98,7 @@ import org.knime.knip.io.nodes.annotation.deprecated.AnnotatorImgCanvas;
 public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>, L extends Comparable<L>> extends AbstractDefaultAnnotatorView<Labeling<String>>
 		implements AnnotatorView<Labeling<String>> {
 
-	private OverlayAnnotatorManager<T> m_manager = new OverlayAnnotatorManager<T>();;
+	private OverlayLiveAnnotationManager<T> m_liveManager = new OverlayLiveAnnotationManager<T>();;
 
 	private EventService m_eventService;
 	
@@ -138,7 +138,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>, L extends
 		ImgViewer annotator = new ImgViewer();
 		annotator
 				.addViewerComponent(new AWTImageProvider(0, new OverlayRU<String>(new CombinedRU(new ImageRU<T>(true), new LabelingRU<L>()))));
-		annotator.addViewerComponent(m_manager);
+		annotator.addViewerComponent(m_liveManager);
 		annotator.addViewerComponent(new EditAnnotatorLabelPanel<L>());
 		annotator.addViewerComponent(AnnotatorToolbar.createEditToolbar());
 		annotator.addViewerComponent(new AnnotatorMinimapPanel());
