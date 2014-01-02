@@ -28,6 +28,7 @@ import org.knime.knip.core.ui.imgviewer.events.OverlayChgEvent;
 import org.knime.knip.core.ui.imgviewer.events.PlaneSelectionEvent;
 import org.knime.knip.core.ui.imgviewer.overlay.Overlay;
 import org.knime.knip.core.ui.imgviewer.overlay.OverlayElement2D;
+import org.knime.knip.core.ui.imgviewer.overlay.OverlayElementStatus;
 import org.knime.knip.core.ui.imgviewer.panels.HiddenViewerComponent;
 
 
@@ -65,17 +66,7 @@ public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 		for (final String label : e.getLabels()) {
 			RandomMissingColorHandler.resetColor(label);
 		}
-
-		m_eventService.publish(new OverlayChgEvent(m_currentOverlay));
 		m_eventService.publish(new ImgRedrawEvent());
-	}
-
-	@EventListener
-	public void onSetClassLabels(final AnnotatorLabelsSetEvent e) {
-		if (m_currentTool != null) {
-			m_currentTool.setLabelsCurrentElements(m_currentOverlay,
-					e.getLabels());
-		}
 	}
 
 	@EventListener
@@ -90,30 +81,6 @@ public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 		}
 
 		m_currentTool = e.getTool();
-
-	}
-
-	@EventListener
-	public void onLabelsDeleted(final AnnotatorLabelsDelEvent e) {
-		if (m_currentOverlay != null) {
-			ArrayList<OverlayElement2D> m_removeList = new ArrayList<OverlayElement2D>();
-
-			for (final OverlayElement2D element : m_currentOverlay
-					.getElements()) {
-				for (final String label : e.getLabels()) {
-					element.getLabels().remove(label);
-				}
-
-				if (element.getLabels().size() == 0) {
-					m_removeList.add(element);
-				}
-			}
-
-			m_currentOverlay.removeAll(m_removeList);
-			m_removeList.clear();
-
-			m_currentOverlay.fireOverlayChanged();
-		}
 	}
 
 	/**
@@ -134,13 +101,14 @@ public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 
 	@EventListener
 	public void onCellChange(final AnnotatorRowColKeyChgEvent e) {
-		if (m_currentOverlay == null) {
-			m_currentOverlay = new Overlay(m_src);
-			m_currentOverlay.setEventService(m_eventService);
-		}
-
-		m_eventService.publish(new OverlayChgEvent(m_currentOverlay));
+		emptyOverlay();
 	}
+
+	@EventListener
+	public void onUpdate(final PlaneSelectionEvent sel) {
+		m_sel = sel;
+	}
+
 
 	private boolean isInsideDims(final long[] planePos, final long[] dims) {
 		if (planePos.length != dims.length) {
@@ -156,35 +124,12 @@ public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 		return true;
 	}
 
-	@EventListener
-	public void onUpdate(final PlaneSelectionEvent sel) {
-		m_sel = sel;
-	}
-
-	@EventListener
-	public void onLabelEdit(final AnnotatorLabelEditEvent e) {
-		if (m_currentOverlay != null) {
-			for (final OverlayElement2D element : m_currentOverlay
-					.getElements()) {
-				if (element.getLabels().remove(e.getOldLabel())) {
-					element.getLabels().add(e.getNewLabel());
-				}
-			}
-
-			onSelectedLabelsChg(new AnnotatorLabelsSelChgEvent(e.getNewLabel()));
-
-			RandomMissingColorHandler.setColor(e.getNewLabel(),
-					RandomMissingColorHandler.getLabelColor(e.getOldLabel()));
-		}
-	}
-
 	/*
 	 * Handling mouse events
 	 */
 
 	@EventListener
 	public void onMousePressed(final ImgViewerMousePressedEvent e) {
-
 		if ((m_currentOverlay != null) && (m_currentTool != null)) {
 			m_currentTool.onMousePressed(e, m_sel, m_currentOverlay,
 					m_selectedLabels);
@@ -193,7 +138,6 @@ public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 
 	@EventListener
 	public void onMouseDragged(final ImgViewerMouseDraggedEvent e) {
-
 		if ((m_currentOverlay != null) && (m_currentTool != null)) {
 			m_currentTool.onMouseDragged(e, m_sel, m_currentOverlay,
 					m_selectedLabels);
@@ -208,12 +152,27 @@ public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 						m_selectedLabels);
 			} else {
 				m_currentTool.onMouseReleased(e, m_sel, m_currentOverlay,
-						m_selectedLabels);
+					m_selectedLabels);
+				testIfDone();
 			}
-
 		}
 	}
 
+	public void testIfDone() {
+		if (m_currentOverlay.getElements().length > 0) {
+			boolean done = true;
+
+			for (OverlayElement2D el : m_currentOverlay.getElements()) {
+				OverlayElementStatus status = el.getStatus();
+				done &= (status.equals(OverlayElementStatus.ACTIVE) || status.equals(OverlayElementStatus.IDLE));
+			}
+			if (done) {
+				m_eventService.publish(new OverlayElementFinishedEvent(m_currentOverlay));
+				emptyOverlay();
+			}
+		}
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -224,6 +183,12 @@ public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 		m_selectedLabels = new String[] { "Unknown" };
 	}
 
+	private void emptyOverlay() {
+		m_currentOverlay = new Overlay(m_src);
+		m_currentOverlay.setEventService(m_eventService);
+		m_eventService.publish(new OverlayChgEvent(m_currentOverlay));
+	}
+	
 	@Override
 	public void saveComponentConfiguration(ObjectOutput out) throws IOException {
 		// nothing to do
