@@ -56,18 +56,24 @@ import java.util.List;
 import javax.swing.JComponent;
 
 import net.imglib2.IterableInterval;
+import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
 import net.imglib2.img.NativeImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingFactory;
 import net.imglib2.labeling.LabelingType;
+import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.img.BinaryOperationAssignment;
 import net.imglib2.ops.img.UnaryOperationAssignment;
 import net.imglib2.ops.operation.UnaryOperation;
+import net.imglib2.ops.operation.UnaryOutputOperation;
 import net.imglib2.ops.operation.img.unary.ImgCopyOperation;
 import net.imglib2.ops.operation.iterableinterval.unary.IterableIntervalCopy;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.type.numeric.integer.LongType;
+import net.imglib2.util.ImgUtil;
 import net.imglib2.view.Views;
 
 import org.knime.core.data.DataCell;
@@ -77,6 +83,7 @@ import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
 import org.knime.knip.base.exceptions.KNIPRuntimeException;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.CopyLabeling;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingTypeDelete;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingTypeMerge;
 import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
@@ -211,8 +218,25 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		if (m_alteredLabelings.containsKey(key)) {
 			m_currentLabeling = m_alteredLabelings.get(key);
 		} else {
-			//TODO COPY INTO ARRAY IMG
-			m_currentLabeling = m_currentCell.getLabeling().copy();
+			//create an array img based copy of the labeling
+			Labeling<String> inputLabeling = m_currentCell.getLabeling();
+			long[] dims = new long[inputLabeling.numDimensions()];
+			inputLabeling.dimensions(dims);
+				
+			NativeImgFactory<?> imgFac = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
+			NativeImgLabeling<String, IntType> copiedLabeling;
+			try {
+				copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType())
+				        .create(dims, new IntType()));
+						
+				CopyLabeling<String> copy = new CopyLabeling<String>();
+				copy.compute(inputLabeling, copiedLabeling);
+
+				//and set the current labeling
+				m_currentLabeling = copiedLabeling;
+			} catch (IncompatibleTypeException e) {
+				e.printStackTrace();
+			}
 		}
 
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
