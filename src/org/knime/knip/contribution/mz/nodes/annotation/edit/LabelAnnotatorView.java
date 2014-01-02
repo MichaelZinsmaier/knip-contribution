@@ -64,6 +64,7 @@ import net.imglib2.ops.img.BinaryOperationAssignment;
 import net.imglib2.ops.operation.labeling.binary.LabelingTypeMerge;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.filestore.FileStoreFactory;
@@ -220,7 +221,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 
 	@EventListener
 	public void elementFinished(OverlayElementFinishedEvent e) {
-		NativeImgFactory<?> factory = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.NTREE_IMG_FACTORY);
+		NativeImgFactory<?> factory = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
 
 		final Labeling<String> labelingNew = e.getOverlay().renderSegmentationImage(
 				factory, false, NativeTypes.INTTYPE);
@@ -228,7 +229,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingTypeMerge<String>());
 		
 		//merge
-		Labeling<String> mergedResult = (Labeling<String>) merge.compute(labelingNew, m_currentLabeling, ImgUtils.createEmptyCopy(m_currentLabeling));
+		Labeling<String> mergedResult = (Labeling<String>) merge.compute(labelingNew, Views.flatIterable(m_currentLabeling), ImgUtils.createEmptyCopy(labelingNew));
 
 		m_alteredLabelings.put(m_currentKey, mergedResult);
 		m_currentLabeling = mergedResult;
