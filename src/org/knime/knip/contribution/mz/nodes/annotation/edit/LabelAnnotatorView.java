@@ -83,7 +83,6 @@ import org.knime.knip.core.ui.imgviewer.annotator.AnnotatorMinimapPanel;
 import org.knime.knip.core.ui.imgviewer.annotator.AnnotatorToolbar;
 import org.knime.knip.core.ui.imgviewer.annotator.OverlayAnnotatorManager;
 import org.knime.knip.core.ui.imgviewer.annotator.RowColKey;
-import org.knime.knip.core.ui.imgviewer.annotator.edit.EditAnnotatorLabelPanel;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorRowColKeyChgEvent;
 import org.knime.knip.core.ui.imgviewer.events.ImgRedrawEvent;
 import org.knime.knip.core.ui.imgviewer.events.ImgWithMetadataChgEvent;
@@ -165,7 +164,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		annotator
 				.addViewerComponent(new AWTImageProvider(0, new OverlayRU<String>(new CombinedRU(new ImageRU<T>(true), new LabelingRU<String>()))));
 		annotator.addViewerComponent(m_liveManager);
-		annotator.addViewerComponent(new EditAnnotatorLabelPanel<String>());
+		annotator.addViewerComponent(new EditAnnotatorLabelPanel());
 		annotator.addViewerComponent(AnnotatorToolbar.createEditToolbar());
 		annotator.addViewerComponent(new AnnotatorMinimapPanel());
 		annotator.addViewerComponent(new ImgNormalizationPanel<T, Img<T>>());
