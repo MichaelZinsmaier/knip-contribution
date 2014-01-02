@@ -55,13 +55,17 @@ import java.util.List;
 
 import javax.swing.JComponent;
 
+import net.imglib2.IterableInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.NativeImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingFactory;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.ops.img.BinaryOperationAssignment;
-import net.imglib2.ops.operation.labeling.binary.LabelingTypeMerge;
+import net.imglib2.ops.img.UnaryOperationAssignment;
+import net.imglib2.ops.operation.UnaryOperation;
+import net.imglib2.ops.operation.img.unary.ImgCopyOperation;
+import net.imglib2.ops.operation.iterableinterval.unary.IterableIntervalCopy;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
@@ -73,6 +77,8 @@ import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
 import org.knime.knip.base.exceptions.KNIPRuntimeException;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingTypeDelete;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingTypeMerge;
 import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
 import org.knime.knip.core.data.img.DefaultLabelingMetadata;
 import org.knime.knip.core.types.ImgFactoryTypes;
@@ -205,7 +211,8 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		if (m_alteredLabelings.containsKey(key)) {
 			m_currentLabeling = m_alteredLabelings.get(key);
 		} else {
-			m_currentLabeling = m_currentCell.getLabeling();
+			//TODO COPY INTO ARRAY IMG
+			m_currentLabeling = m_currentCell.getLabeling().copy();
 		}
 
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
@@ -225,14 +232,24 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 
 		final Labeling<String> labelingNew = e.getOverlay().renderSegmentationImage(
 				factory, false, NativeTypes.INTTYPE);
-		BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> merge = 
-				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingTypeMerge<String>());
+		
+		//further speed up possible:
+		//one good way would be to merge only at the points where an actual change happened (i.e. all from new label)
+		//alternative work directly on the native labeling?
 		
 		//merge
-		Labeling<String> mergedResult = (Labeling<String>) merge.compute(labelingNew, Views.flatIterable(m_currentLabeling), ImgUtils.createEmptyCopy(labelingNew));
+		BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> merge = 
+				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingTypeMerge<String>());
 
-		m_alteredLabelings.put(m_currentKey, mergedResult);
-		m_currentLabeling = mergedResult;
+		//delete
+		BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> delete = 
+				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingTypeDelete<String>());
+
+		
+		Labeling<String> result = (Labeling<String>) merge.compute(m_currentLabeling, labelingNew, m_currentLabeling);
+		
+		m_alteredLabelings.put(m_currentKey, result);
+		m_currentLabeling = result;
 		
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
 	}
