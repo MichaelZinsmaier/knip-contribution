@@ -55,39 +55,23 @@ import java.util.List;
 
 import javax.swing.JComponent;
 
-import net.imglib2.IterableInterval;
 import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
 import net.imglib2.img.NativeImgFactory;
 import net.imglib2.labeling.Labeling;
-import net.imglib2.labeling.LabelingFactory;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.img.BinaryOperationAssignment;
-import net.imglib2.ops.img.UnaryOperationAssignment;
-import net.imglib2.ops.operation.UnaryOperation;
-import net.imglib2.ops.operation.UnaryOutputOperation;
-import net.imglib2.ops.operation.img.unary.ImgCopyOperation;
-import net.imglib2.ops.operation.iterableinterval.unary.IterableIntervalCopy;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
-import net.imglib2.type.numeric.integer.LongType;
-import net.imglib2.util.ImgUtil;
-import net.imglib2.view.Views;
-
 import org.knime.core.data.DataCell;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
-import org.knime.knip.base.data.labeling.LabelingCellFactory;
-import org.knime.knip.base.exceptions.KNIPRuntimeException;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.CopyLabeling;
-import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingTypeDelete;
-import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingTypeMerge;
-import org.knime.knip.core.awt.labelingcolortable.DefaultLabelingColorTable;
-import org.knime.knip.core.data.img.DefaultLabelingMetadata;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingRemoveManipulationOp;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingAddManipulationOp;
 import org.knime.knip.core.types.ImgFactoryTypes;
 import org.knime.knip.core.types.NativeTypes;
 import org.knime.knip.core.ui.event.EventListener;
@@ -95,15 +79,11 @@ import org.knime.knip.core.ui.event.EventService;
 import org.knime.knip.core.ui.imgviewer.ImgViewer;
 import org.knime.knip.core.ui.imgviewer.annotator.AnnotatorMinimapPanel;
 import org.knime.knip.core.ui.imgviewer.annotator.AnnotatorToolbar;
-import org.knime.knip.core.ui.imgviewer.annotator.OverlayAnnotatorManager;
 import org.knime.knip.core.ui.imgviewer.annotator.RowColKey;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorRowColKeyChgEvent;
 import org.knime.knip.core.ui.imgviewer.events.ImgRedrawEvent;
 import org.knime.knip.core.ui.imgviewer.events.ImgWithMetadataChgEvent;
 import org.knime.knip.core.ui.imgviewer.events.LabelingWithMetadataChgEvent;
-import org.knime.knip.core.ui.imgviewer.events.OverlayChgEvent;
-import org.knime.knip.core.ui.imgviewer.overlay.Overlay;
-import org.knime.knip.core.ui.imgviewer.overlay.OverlayElementStatus;
 import org.knime.knip.core.ui.imgviewer.panels.ImgNormalizationPanel;
 import org.knime.knip.core.ui.imgviewer.panels.PlaneSelectionPanel;
 import org.knime.knip.core.ui.imgviewer.panels.RendererSelectionPanel;
@@ -114,7 +94,6 @@ import org.knime.knip.core.ui.imgviewer.panels.providers.CombinedRU;
 import org.knime.knip.core.ui.imgviewer.panels.providers.ImageRU;
 import org.knime.knip.core.ui.imgviewer.panels.providers.LabelingRU;
 import org.knime.knip.core.ui.imgviewer.panels.providers.OverlayRU;
-import org.knime.knip.core.util.ImgUtils;
 import org.knime.knip.io.nodes.annotation.AbstractDefaultAnnotatorView;
 import org.knime.knip.io.nodes.annotation.AnnotatorView;
 import org.knime.knip.io.nodes.annotation.deprecated.AnnotatorImgCanvas;
@@ -254,23 +233,21 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	public void elementFinished(OverlayElementFinishedEvent e) {
 		NativeImgFactory<?> factory = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
 
+		IntType emptyLabel = new IntType(0);
+		
 		final Labeling<String> labelingNew = e.getOverlay().renderSegmentationImage(
 				factory, false, NativeTypes.INTTYPE);
 		
-		//further speed up possible:
-		//one good way would be to merge only at the points where an actual change happened (i.e. all from new label)
-		//alternative work directly on the native labeling?
-		
 		//merge
 		BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> merge = 
-				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingTypeMerge<String>());
+				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingAddManipulationOp<String>(emptyLabel));
 
 		//delete
 		BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> delete = 
-				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingTypeDelete<String>());
+				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingRemoveManipulationOp<String>(emptyLabel));
 
 		
-		Labeling<String> result = (Labeling<String>) merge.compute(m_currentLabeling, labelingNew, m_currentLabeling);
+		Labeling<String> result = (Labeling<String>) delete.compute(m_currentLabeling, labelingNew, m_currentLabeling);
 		
 		m_alteredLabelings.put(m_currentKey, result);
 		m_currentLabeling = result;
