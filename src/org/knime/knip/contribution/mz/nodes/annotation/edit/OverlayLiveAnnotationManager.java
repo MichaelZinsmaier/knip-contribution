@@ -3,7 +3,7 @@ package org.knime.knip.contribution.mz.nodes.annotation.edit;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.ArrayList;
+
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.RealType;
 
@@ -11,11 +11,8 @@ import org.knime.knip.core.awt.labelingcolortable.RandomMissingColorHandler;
 import org.knime.knip.core.ui.event.EventListener;
 import org.knime.knip.core.ui.event.EventService;
 import org.knime.knip.core.ui.imgviewer.annotator.AnnotatorTool;
-import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorLabelEditEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorLabelsColResetEvent;
-import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorLabelsDelEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorLabelsSelChgEvent;
-import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorLabelsSetEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorResetEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorRowColKeyChgEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorToolChgEvent;
@@ -31,7 +28,9 @@ import org.knime.knip.core.ui.imgviewer.overlay.OverlayElement2D;
 import org.knime.knip.core.ui.imgviewer.overlay.OverlayElementStatus;
 import org.knime.knip.core.ui.imgviewer.panels.HiddenViewerComponent;
 
-
+/**
+ * @author <a href="mailto:michael.zinsmaier@googlemail.com">Michael Zinsmaier</a>
+ */
 public class OverlayLiveAnnotationManager<T extends RealType<T>> extends
 		HiddenViewerComponent {
 

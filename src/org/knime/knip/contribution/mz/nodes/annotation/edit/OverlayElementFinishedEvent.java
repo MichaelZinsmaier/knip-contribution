@@ -3,6 +3,9 @@ package org.knime.knip.contribution.mz.nodes.annotation.edit;
 import org.knime.knip.core.ui.event.KNIPEvent;
 import org.knime.knip.core.ui.imgviewer.overlay.Overlay;
 
+/**
+ * @author <a href="mailto:michael.zinsmaier@googlemail.com">Michael Zinsmaier</a>
+ */
 public class OverlayElementFinishedEvent implements KNIPEvent {
 
 	private final Overlay m_overlay;

@@ -7,6 +7,9 @@ import net.imglib2.labeling.LabelingType;
 import net.imglib2.ops.operation.BinaryOperation;
 import net.imglib2.type.numeric.IntegerType;
 
+/**
+ * @author <a href="mailto:michael.zinsmaier@googlemail.com">Michael Zinsmaier</a>
+ */
 public class LabelingRemoveManipulationOp<L extends Comparable<L>> implements
 		BinaryOperation<LabelingType<L>, LabelingType<L>, LabelingType<L>> {
 

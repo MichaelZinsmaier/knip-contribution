@@ -2,6 +2,9 @@ package org.knime.knip.contribution.mz.nodes.annotation.edit;
 
 import org.knime.knip.core.ui.event.KNIPEvent;
 
+/**
+ * @author <a href="mailto:michael.zinsmaier@googlemail.com">Michael Zinsmaier</a>
+ */
 public class EditAnnotatorModeEvent implements KNIPEvent {
 
 	private final boolean m_addMode;

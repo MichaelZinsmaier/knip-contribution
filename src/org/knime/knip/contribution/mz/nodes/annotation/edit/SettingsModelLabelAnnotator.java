@@ -28,6 +28,9 @@ import org.knime.knip.io.nodes.annotation.SettingsModelAnnotatorView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author <a href="mailto:michael.zinsmaier@googlemail.com">Michael Zinsmaier</a>
+ */
 public class SettingsModelLabelAnnotator extends SettingsModelAnnotatorView<Labeling<String>> {
 
 	private final String m_configName;

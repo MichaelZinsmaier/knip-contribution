@@ -7,6 +7,9 @@ import net.imglib2.ops.operation.UnaryOperation;
 
 //TODO replace this whole operation with new imgcopyoperation op
 
+/**
+ * @author <a href="mailto:michael.zinsmaier@googlemail.com">Michael Zinsmaier</a>
+ */
 public class CopyLabeling<L extends Comparable<L>> implements UnaryOperation<Labeling<L>, Labeling<L>> {
 
 	@Override
