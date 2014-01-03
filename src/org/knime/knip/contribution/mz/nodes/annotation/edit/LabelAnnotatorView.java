@@ -147,7 +147,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		// assumption labels that should be added like this come from
 		// serialization => they belong to the input table
 		
-		//TODO
+		m_alteredLabelings.put(key, annotation);
 	}
 
 	

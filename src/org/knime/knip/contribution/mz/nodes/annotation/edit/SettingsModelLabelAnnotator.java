@@ -7,17 +7,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.imglib2.exception.IncompatibleTypeException;
+import net.imglib2.img.NativeImgFactory;
 import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.NativeImgLabeling;
+import net.imglib2.type.numeric.integer.IntType;
 
 import org.apache.xmlbeans.impl.util.Base64;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.CopyLabeling;
 import org.knime.knip.core.io.externalization.BufferedDataInputStream;
 import org.knime.knip.core.io.externalization.BufferedDataOutputStream;
 import org.knime.knip.core.io.externalization.ExternalizerManager;
 import org.knime.knip.core.io.externalization.externalizers.NativeImgLabelingExt0;
+import org.knime.knip.core.types.ImgFactoryTypes;
 import org.knime.knip.core.ui.imgviewer.annotator.RowColKey;
 import org.knime.knip.io.nodes.annotation.SettingsModelAnnotatorView;
 import org.slf4j.Logger;
@@ -66,7 +71,7 @@ public class SettingsModelLabelAnnotator extends SettingsModelAnnotatorView<Labe
 
 				// write value
 				NativeImgLabelingExt0 externalizer = new NativeImgLabelingExt0();
-				externalizer.write(out, (NativeImgLabeling) entry.getValue());
+				externalizer.write(out, asNTreeBased((NativeImgLabeling<String, IntType>) entry.getValue()));
 			}
 			out.flush();
 
@@ -99,7 +104,7 @@ public class SettingsModelLabelAnnotator extends SettingsModelAnnotatorView<Labe
 				NativeImgLabelingExt0 externalizer = new NativeImgLabelingExt0();
 				NativeImgLabeling<?, ?> value = externalizer.read(in);
 				
-				m_labelingMap.put(key, (Labeling<String>) value);
+				m_labelingMap.put(key, asArrayBased((NativeImgLabeling<String, IntType>) value));
 			}
 			in.close();
 
@@ -112,6 +117,32 @@ public class SettingsModelLabelAnnotator extends SettingsModelAnnotatorView<Labe
 		}		
 	}
 
+	@SuppressWarnings("unchecked")
+	private NativeImgLabeling<String, IntType> asNTreeBased(NativeImgLabeling<String, IntType> arrayBased) throws IncompatibleTypeException {
+		//TODO use an op for factory conversion if possible
+		long[] dims = new long[arrayBased.numDimensions()];
+		arrayBased.dimensions(dims);
+			
+		NativeImgFactory<?> imgFac = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.NTREE_IMG_FACTORY);
+		NativeImgLabeling<String, IntType> copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType()).create(dims, new IntType()));
+					
+		CopyLabeling<String> copy = new CopyLabeling<String>();
+		return (NativeImgLabeling<String, IntType>)copy.compute(arrayBased, copiedLabeling);		
+	}
+	
+	@SuppressWarnings("unchecked")
+	private NativeImgLabeling<String, IntType> asArrayBased(NativeImgLabeling<String, IntType> ntreeBased) throws IncompatibleTypeException {
+		//TODO use an op for factory conversion if possible
+		long[] dims = new long[ntreeBased.numDimensions()];
+		ntreeBased.dimensions(dims);
+			
+		NativeImgFactory<?> imgFac = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
+		NativeImgLabeling<String, IntType> copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType()).create(dims, new IntType()));
+					
+		CopyLabeling<String> copy = new CopyLabeling<String>();
+		return (NativeImgLabeling<String, IntType>)copy.compute(ntreeBased, copiedLabeling);	
+	}
+	
 	//standard methods
 	
 	@Override
