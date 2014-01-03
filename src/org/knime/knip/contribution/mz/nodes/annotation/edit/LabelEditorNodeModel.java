@@ -34,15 +34,7 @@ public class LabelEditorNodeModel<L extends Comparable<L>>
 	static SettingsModelLabelAnnotator createAnnotatorSM() {
 		return new SettingsModelLabelAnnotator(LABEL_SETTINGS_KEY);
 	}
-
-	static SettingsModelString createLabelingTypeSM() {
-		return new SettingsModelString("labeling_type",
-				NativeTypes.SHORTTYPE.toString());
-	}
-
 	private SettingsModelLabelAnnotator m_annotationsSM = createAnnotatorSM();
-
-	private final SettingsModelString m_labelingType = createLabelingTypeSM();
 
 	private LabelingCellFactory m_labelingCellFactory;
 	
@@ -53,7 +45,6 @@ public class LabelEditorNodeModel<L extends Comparable<L>>
 	@Override
 	protected void addSettingsModels(List<SettingsModel> settingsModels) {
 		settingsModels.add(m_annotationsSM);
-		settingsModels.add(m_labelingType);
 	}
 	
 	/**

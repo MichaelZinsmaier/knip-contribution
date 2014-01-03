@@ -74,25 +74,6 @@ public class LabelEditorNodeDialog<T extends RealType<T> & NativeType<T>, L exte
 				"Column suffix"));
 		closeCurrentGroup();
 
-		createNewGroup("");
-		addDialogComponent(new DialogComponentColumnFilter(
-				ValueToCellNodeModel.createColumnSelectionModel(), 0, true,
-				LabelingValue.class));
-		closeCurrentGroup();
-
-		// label settings
-
-		createNewTab("Label Settings");
-		setHorizontalPlacement(true);
-		createNewGroup("Options");
-
-		addDialogComponent(new DialogComponentStringSelection(
-				LabelEditorNodeModel.createLabelingTypeSM(),
-				"Storage Img Type", EnumUtils.getStringListFromName(NativeTypes
-						.intTypeValues())));
-
-		closeCurrentGroup();
-
 		// add append suffix logic
 		m_smColCreationMode.addChangeListener(new ChangeListener() {
 			@Override
