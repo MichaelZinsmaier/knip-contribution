@@ -130,7 +130,7 @@ public class LabelEditorNodeDialog<T extends RealType<T> & NativeType<T>, L exte
 		createNewGroup("");
 		addDialogComponent(new DialogComponentColumnFilter(
 				ValueToCellNodeModel.createColumnSelectionModel(), 0, true,
-				ImgPlusValue.class));
+				LabelingValue.class));
 		closeCurrentGroup();
 
 		// label settings
