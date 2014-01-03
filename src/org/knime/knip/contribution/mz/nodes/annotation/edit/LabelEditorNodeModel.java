@@ -53,9 +53,7 @@ import java.util.Map;
 
 import net.imglib2.labeling.Labeling;
 
-import org.knime.base.data.filter.column.FilterColumnTable;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTableHolder;
 import org.knime.core.node.ExecutionContext;
@@ -67,11 +65,10 @@ import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.base.data.labeling.LabelingCellFactory;
 import org.knime.knip.base.data.labeling.LabelingValue;
-import org.knime.knip.base.node.NodeTools;
+import org.knime.knip.base.node.NodeUtils;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.core.types.NativeTypes;
 import org.knime.knip.core.ui.imgviewer.annotator.RowColKey;
-import org.knime.knip.core.ui.imgviewer.overlay.Overlay;
 
 /**
  * TODO Auto-generated
@@ -120,9 +117,9 @@ public class LabelEditorNodeModel<L extends Comparable<L>>
 			throws InvalidSettingsException {
 		DataTableSpec inSpec = (DataTableSpec) inSpecs[0];
 
-		int firstImage = NodeTools.firstCompatibleColumn(inSpec,
+		int firstImage = NodeUtils.firstCompatibleColumn(inSpec,
 				ImgPlusValue.class);
-		int firstLabel = NodeTools.firstCompatibleColumn(inSpec,
+		int firstLabel = NodeUtils.firstCompatibleColumn(inSpec,
 				LabelingValue.class);
 
 		if (firstImage != -1 && firstLabel != -1) {
@@ -161,5 +158,11 @@ public class LabelEditorNodeModel<L extends Comparable<L>>
 			// => missing cell
 			return null;
 		}
+	}
+	
+	@Override
+	protected void reset() {
+		// TODO Auto-generated method stub
+		super.reset();
 	}
 }

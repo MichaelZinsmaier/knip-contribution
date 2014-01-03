@@ -71,11 +71,11 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingValue;
-import org.knime.knip.base.node.NodeTools;
+import org.knime.knip.base.node.NodeUtils;
 import org.knime.knip.base.node.ValueToCellNodeModel;
 import org.knime.knip.base.node.dialog.DataAwareDefaultNodeSettingsPane;
 import org.knime.knip.core.types.NativeTypes;
-import org.knime.knip.core.util.EnumListProvider;
+import org.knime.knip.core.util.EnumUtils;
 import org.knime.knip.io.nodes.annotation.DialogComponentAnnotatorView;
 
 /**
@@ -141,7 +141,7 @@ public class LabelEditorNodeDialog<T extends RealType<T> & NativeType<T>, L exte
 
 		addDialogComponent(new DialogComponentStringSelection(
 				LabelEditorNodeModel.createLabelingTypeSM(),
-				"Storage Img Type", EnumListProvider.getStringList(NativeTypes
+				"Storage Img Type", EnumUtils.getStringListFromName(NativeTypes
 						.intTypeValues())));
 
 		closeCurrentGroup();
@@ -183,9 +183,9 @@ public class LabelEditorNodeDialog<T extends RealType<T> & NativeType<T>, L exte
 		// get index of first image column (if available) and first label column
 		// issue a warning
 		// if there are more
-		int firstImage = NodeTools.firstCompatibleColumn(inSpec,
+		int firstImage = NodeUtils.firstCompatibleColumn(inSpec,
 				ImgPlusValue.class);
-		int firstLabel = NodeTools.firstCompatibleColumn(inSpec,
+		int firstLabel = NodeUtils.firstCompatibleColumn(inSpec,
 				LabelingValue.class);
 
 		DataTable filteredTable;
@@ -198,9 +198,9 @@ public class LabelEditorNodeDialog<T extends RealType<T> & NativeType<T>, L exte
 			filteredTable = new FilterColumnTable(inputTable, new int[] {});
 		}
 
-		if (NodeTools.firstCompatibleColumn(inSpec, ImgPlusValue.class,
+		if (NodeUtils.firstCompatibleColumn(inSpec, ImgPlusValue.class,
 				firstImage) != -1
-				|| NodeTools.firstCompatibleColumn(inSpec, LabelingValue.class,
+				|| NodeUtils.firstCompatibleColumn(inSpec, LabelingValue.class,
 						firstLabel) != -1) {	
 			LOGGER.warn("There are multiple candidate columns. The first image/labeling column is choosen.");
 		}
