@@ -48,7 +48,6 @@
  */
 package org.knime.knip.contribution.mz.nodes.annotation.edit;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,13 +64,14 @@ import net.imglib2.ops.img.BinaryOperationAssignment;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
+
 import org.knime.core.data.DataCell;
 import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.CopyLabeling;
-import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingRemoveManipulationOp;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingAddManipulationOp;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingRemoveManipulationOp;
 import org.knime.knip.core.types.ImgFactoryTypes;
 import org.knime.knip.core.types.NativeTypes;
 import org.knime.knip.core.ui.event.EventListener;
@@ -178,9 +178,15 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void currentSelectionChanged(DataCell[] currentRow, int currentColNr, RowColKey key) {
-		m_currentKey = key;
 		
 		ImgPlusCell<T> imgPlusCell = null;
+		
+		for (DataCell c : currentRow) {
+			if (c.isMissing()) {
+				return;
+			}
+		}
+		
 		
 		if (currentRow.length == 2) {
             // Labeling and image
@@ -202,6 +208,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		} else {
 			//create an array img based copy of the labeling
 			Labeling<String> inputLabeling = m_currentCell.getLabeling();
+		
 			long[] dims = new long[inputLabeling.numDimensions()];
 			inputLabeling.dimensions(dims);
 				
@@ -220,6 +227,8 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 				e.printStackTrace();
 			}
 		}
+		
+		m_currentKey = key;
 
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
 		
