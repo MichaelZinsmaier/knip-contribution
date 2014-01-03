@@ -120,6 +120,8 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	private Labeling<String> m_currentLabeling;
 	
 	private LabelingCell<String> m_currentCell;
+
+	private boolean m_isAddMode = true;
 	
 	public LabelAnnotatorView() {
 			createAnnotator();
@@ -158,6 +160,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 				.addViewerComponent(new AWTImageProvider(0, new OverlayRU<String>(new CombinedRU(new ImageRU<T>(true), new LabelingRU<String>()))));
 		annotator.addViewerComponent(m_liveManager);
 		annotator.addViewerComponent(new EditAnnotatorLabelPanel());
+		annotator.addViewerComponent(new EditAnnotatorModeSelectionPanel());
 		annotator.addViewerComponent(AnnotatorToolbar.createEditToolbar());
 		annotator.addViewerComponent(new AnnotatorMinimapPanel());
 		annotator.addViewerComponent(new ImgNormalizationPanel<T, Img<T>>());
@@ -229,6 +232,12 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		return m_eventService;
 	}
 
+	
+	@EventListener
+	public void editModeChanged(EditAnnotatorModeEvent e) {
+		m_isAddMode  = e.isAddMode();
+	}
+	
 	@EventListener
 	public void elementFinished(OverlayElementFinishedEvent e) {
 		NativeImgFactory<?> factory = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
@@ -237,17 +246,17 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		
 		final Labeling<String> labelingNew = e.getOverlay().renderSegmentationImage(
 				factory, false, NativeTypes.INTTYPE);
-		
-		//merge
-		BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> merge = 
-				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingAddManipulationOp<String>(emptyLabel));
 
-		//delete
-		BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> delete = 
-				new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingRemoveManipulationOp<String>(emptyLabel));
-
-		
-		Labeling<String> result = (Labeling<String>) delete.compute(m_currentLabeling, labelingNew, m_currentLabeling);
+		Labeling<String> result;
+		if (m_isAddMode) {
+			BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> add = 
+					new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingAddManipulationOp<String>(emptyLabel));
+			 result = (Labeling<String>) add.compute(m_currentLabeling, labelingNew, m_currentLabeling);
+		} else {
+			BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> remove = 
+					new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingRemoveManipulationOp<String>(emptyLabel));
+			 result = (Labeling<String>) remove.compute(m_currentLabeling, labelingNew, m_currentLabeling);
+		}
 		
 		m_alteredLabelings.put(m_currentKey, result);
 		m_currentLabeling = result;
