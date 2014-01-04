@@ -1,4 +1,4 @@
-package org.knime.knip.contribution.mz.nodes.annotation.edit;
+package org.knime.knip.contribution.mz.nodes.annotation.edit.views;
 
 import org.knime.knip.core.ui.event.KNIPEvent;
 

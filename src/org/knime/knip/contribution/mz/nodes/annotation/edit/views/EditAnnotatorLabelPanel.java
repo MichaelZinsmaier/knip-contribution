@@ -1,4 +1,4 @@
-package org.knime.knip.contribution.mz.nodes.annotation.edit;
+package org.knime.knip.contribution.mz.nodes.annotation.edit.views;
 
 import java.awt.Dimension;
 import java.io.IOException;

@@ -24,6 +24,11 @@ import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.CopyLabeling;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingAddManipulationOp;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingRemoveManipulationOp;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorLabelPanel;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorModeEvent;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorModeSelectionPanel;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorResetConfigEvent;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorResetPanel;
 import org.knime.knip.core.types.ImgFactoryTypes;
 import org.knime.knip.core.types.NativeTypes;
 import org.knime.knip.core.ui.event.EventListener;
@@ -32,6 +37,7 @@ import org.knime.knip.core.ui.imgviewer.ImgViewer;
 import org.knime.knip.core.ui.imgviewer.annotator.AnnotatorMinimapPanel;
 import org.knime.knip.core.ui.imgviewer.annotator.AnnotatorToolbar;
 import org.knime.knip.core.ui.imgviewer.annotator.RowColKey;
+import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorResetEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorRowColKeyChgEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.tools.AnnotatorFreeFormTool;
 import org.knime.knip.core.ui.imgviewer.annotator.tools.AnnotatorRectangleTool;
@@ -111,6 +117,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		annotator.addViewerComponent(new EditAnnotatorLabelPanel());
 		annotator.addViewerComponent(new EditAnnotatorModeSelectionPanel());
 		annotator.addViewerComponent(new AnnotatorToolbar(new AnnotatorRectangleTool(), new AnnotatorFreeFormTool()));
+		annotator.addViewerComponent(new EditAnnotatorResetPanel());
 		annotator.addViewerComponent(new AnnotatorMinimapPanel());
 		annotator.addViewerComponent(new ImgNormalizationPanel<T, Img<T>>());
 		annotator.addViewerComponent(new PlaneSelectionPanel<T, Img<T>>());
@@ -155,34 +162,37 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		if (m_alteredLabelings.containsKey(key)) {
 			m_currentLabeling = m_alteredLabelings.get(key);
 		} else {
-			//create an array img based copy of the labeling
-			Labeling<String> inputLabeling = m_currentCell.getLabeling();
-		
-			long[] dims = new long[inputLabeling.numDimensions()];
-			inputLabeling.dimensions(dims);
-				
-			NativeImgFactory<?> imgFac = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
-			NativeImgLabeling<String, IntType> copiedLabeling;
-			try {
-				copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType())
-				        .create(dims, new IntType()));
-						
-				CopyLabeling<String> copy = new CopyLabeling<String>();
-				copy.compute(inputLabeling, copiedLabeling);
-
-				//and set the current labeling
-				m_currentLabeling = copiedLabeling;
-			} catch (IncompatibleTypeException e) {
-				e.printStackTrace();
-			}
+			initFromCurrentCell();
 		}
 		
 		m_currentKey = key;
 
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
-		
 		m_eventService.publish(new AnnotatorRowColKeyChgEvent(key));
 		m_eventService.publish(new ImgRedrawEvent());		
+	}
+
+	private void initFromCurrentCell() {
+		//create an array img based copy of the labeling
+		Labeling<String> inputLabeling = m_currentCell.getLabeling();
+
+		long[] dims = new long[inputLabeling.numDimensions()];
+		inputLabeling.dimensions(dims);
+			
+		NativeImgFactory<?> imgFac = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
+		NativeImgLabeling<String, IntType> copiedLabeling;
+		try {
+			copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType())
+			        .create(dims, new IntType()));
+					
+			CopyLabeling<String> copy = new CopyLabeling<String>();
+			copy.compute(inputLabeling, copiedLabeling);
+
+			//and set the current labeling
+			m_currentLabeling = copiedLabeling;
+		} catch (IncompatibleTypeException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -194,6 +204,14 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	@EventListener
 	public void editModeChanged(EditAnnotatorModeEvent e) {
 		m_isAddMode  = e.isAddMode();
+	}
+
+	@EventListener
+	public void resetEvent(EditAnnotatorResetConfigEvent e) {
+		m_alteredLabelings.clear();
+		initFromCurrentCell();
+		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
+		m_eventService.publish(new ImgRedrawEvent());
 	}
 	
 	@EventListener
