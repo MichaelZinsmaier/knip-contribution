@@ -64,6 +64,8 @@ import org.knime.knip.io.nodes.annotation.deprecated.AnnotatorImgCanvas;
 public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends AbstractDefaultAnnotatorView<Labeling<String>>
 		implements AnnotatorView<Labeling<String>> {
 
+	public static final String FIXED_COL = "FirstMatch";
+	
 	private OverlayLiveAnnotationManager<T> m_liveManager = new OverlayLiveAnnotationManager<T>();
 
 	private EventService m_eventService;
@@ -86,7 +88,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 
 	@Override
 	public Labeling<String> getAnnotation(RowColKey key) {
-		return m_alteredLabelings.get(key);
+		return m_alteredLabelings.get(getRowOnlyKey(key));
 	}
 
 	@Override
@@ -94,7 +96,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		// assumption labels that should be added like this come from
 		// serialization => they belong to the input table
 		
-		m_alteredLabelings.put(key, annotation);
+		m_alteredLabelings.put(getRowOnlyKey(key), annotation);
 	}
 
 	
@@ -136,6 +138,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	protected void currentSelectionChanged(DataCell[] currentRow, int currentColNr, RowColKey key) {
 		
 		ImgPlusCell<T> imgPlusCell = null;
+		RowColKey rowOnlyKey = getRowOnlyKey(key);
 		
 		for (DataCell c : currentRow) {
 			if (c.isMissing()) {
@@ -159,16 +162,16 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
         	m_currentCell = (LabelingCell<String>)currentRow[0];
         }
 
-		if (m_alteredLabelings.containsKey(key)) {
-			m_currentLabeling = m_alteredLabelings.get(key);
+		if (m_alteredLabelings.containsKey(rowOnlyKey)) {
+			m_currentLabeling = m_alteredLabelings.get(rowOnlyKey);
 		} else {
 			initFromCurrentCell();
 		}
 		
-		m_currentKey = key;
+		m_currentKey = rowOnlyKey;
 
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
-		m_eventService.publish(new AnnotatorRowColKeyChgEvent(key));
+		m_eventService.publish(new AnnotatorRowColKeyChgEvent(rowOnlyKey));
 		m_eventService.publish(new ImgRedrawEvent());		
 	}
 
@@ -240,5 +243,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
 	}
 
-	
+	private RowColKey getRowOnlyKey(RowColKey key) {
+		return new RowColKey(key.getRowName(), FIXED_COL);
+	}
 }

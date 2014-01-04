@@ -40,35 +40,12 @@ public class LabelEditorNodeModel<L extends Comparable<L>>
 	
 	private DataRow m_currentRow;
 	
-	private String m_colName;
 	
 	@Override
 	protected void addSettingsModels(List<SettingsModel> settingsModels) {
 		settingsModels.add(m_annotationsSM);
 	}
 	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-			throws InvalidSettingsException {
-		DataTableSpec inSpec = (DataTableSpec) inSpecs[0];
-
-		int firstImage = NodeUtils.firstCompatibleColumn(inSpec,
-				ImgPlusValue.class);
-		int firstLabel = NodeUtils.firstCompatibleColumn(inSpec,
-				LabelingValue.class);
-
-		if (firstImage != -1 && firstLabel != -1) {
-			m_colName = inSpec.getColumnNames()[firstImage];
-		} else if (firstLabel != -1) {
-			m_colName = inSpec.getColumnNames()[firstLabel];
-		}
-		
-		return super.configure(inSpecs);
-	}
-
 	@Override
 	protected void prepareExecute(ExecutionContext exec) {
 		m_labelingCellFactory = new LabelingCellFactory(exec);
@@ -88,7 +65,7 @@ public class LabelEditorNodeModel<L extends Comparable<L>>
 		// calculate key
 		String rowName = m_currentRow.getKey().getString();
 	
-		final Labeling<String> outLabel = labelMap.get(new RowColKey(rowName, m_colName));
+		final Labeling<String> outLabel = labelMap.get(new RowColKey(rowName, LabelAnnotatorView.FIXED_COL));
 
 		if ((outLabel != null)) {
 			return m_labelingCellFactory.createCell(outLabel,cellValue.getLabelingMetadata());
@@ -96,11 +73,5 @@ public class LabelEditorNodeModel<L extends Comparable<L>>
 			// => missing cell
 			return null;
 		}
-	}
-	
-	@Override
-	protected void reset() {
-		// TODO Auto-generated method stub
-		super.reset();
 	}
 }
