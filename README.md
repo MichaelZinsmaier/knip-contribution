@@ -2,7 +2,7 @@ knip-contribution
 =================
 
 The code in this repository is available under the FreeBSD license and might be shipped with future KNIP releases.
-This applies however not to all resource files like images.
+The license applies however not to all resource files (like images).
 
 
 <b>Interactive Labeling Editor:</b>
