@@ -10,14 +10,15 @@ import java.util.Map.Entry;
 import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.NativeImgFactory;
 import net.imglib2.labeling.Labeling;
+import net.imglib2.labeling.LabelingType;
 import net.imglib2.labeling.NativeImgLabeling;
+import net.imglib2.ops.operation.img.unary.ImgCopyOperation;
 import net.imglib2.type.numeric.integer.IntType;
 
 import org.apache.xmlbeans.impl.util.Base64;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.CopyLabeling;
 import org.knime.knip.core.io.externalization.BufferedDataInputStream;
 import org.knime.knip.core.io.externalization.BufferedDataOutputStream;
 import org.knime.knip.core.io.externalization.ExternalizerManager;
@@ -129,7 +130,7 @@ public class SettingsModelLabelAnnotator extends SettingsModelAnnotatorView<Labe
 		NativeImgFactory<?> imgFac = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.NTREE_IMG_FACTORY);
 		NativeImgLabeling<String, IntType> copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType()).create(dims, new IntType()));
 					
-		CopyLabeling<String> copy = new CopyLabeling<String>();
+		ImgCopyOperation<LabelingType<String>> copy = new ImgCopyOperation<LabelingType<String>>();
 		return (NativeImgLabeling<String, IntType>)copy.compute(arrayBased, copiedLabeling);		
 	}
 	
@@ -142,7 +143,7 @@ public class SettingsModelLabelAnnotator extends SettingsModelAnnotatorView<Labe
 		NativeImgFactory<?> imgFac = (NativeImgFactory<?>) ImgFactoryTypes.getImgFactory(ImgFactoryTypes.ARRAY_IMG_FACTORY);
 		NativeImgLabeling<String, IntType> copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType()).create(dims, new IntType()));
 					
-		CopyLabeling<String> copy = new CopyLabeling<String>();
+		ImgCopyOperation<LabelingType<String>> copy = new ImgCopyOperation<LabelingType<String>>();
 		return (NativeImgLabeling<String, IntType>)copy.compute(ntreeBased, copiedLabeling);	
 	}
 	

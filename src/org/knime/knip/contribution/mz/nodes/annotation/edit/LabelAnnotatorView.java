@@ -13,6 +13,7 @@ import net.imglib2.labeling.Labeling;
 import net.imglib2.labeling.LabelingType;
 import net.imglib2.labeling.NativeImgLabeling;
 import net.imglib2.ops.img.BinaryOperationAssignment;
+import net.imglib2.ops.operation.img.unary.ImgCopyOperation;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
@@ -21,7 +22,6 @@ import org.knime.core.data.DataCell;
 import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
-import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.CopyLabeling;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingAddManipulationOp;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingRemoveManipulationOp;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorLabelPanel;
@@ -188,7 +188,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 			copiedLabeling = new NativeImgLabeling<String, IntType>(imgFac.imgFactory(new IntType())
 			        .create(dims, new IntType()));
 					
-			CopyLabeling<String> copy = new CopyLabeling<String>();
+			ImgCopyOperation<LabelingType<String>> copy = new ImgCopyOperation<LabelingType<String>>();
 			copy.compute(inputLabeling, copiedLabeling);
 
 			//and set the current labeling
