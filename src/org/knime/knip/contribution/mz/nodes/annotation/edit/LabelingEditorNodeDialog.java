@@ -35,6 +35,11 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import org.knime.base.data.filter.column.FilterColumnTable;
+import org.knime.base.data.filter.row.FilterRowGenerator;
+import org.knime.base.data.filter.row.FilterRowTable;
+import org.knime.base.node.preproc.filter.row.rowfilter.MissingCellRowFilter;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -160,7 +165,7 @@ public class LabelingEditorNodeDialog<T extends RealType<T> & NativeType<T>, L e
 			LOGGER.warn("There are multiple candidate columns. The first image/labeling column is choosen.");
 		}
 
-		m_dialogComponentAnnotator.updateDataTable(filteredTable);
+		m_dialogComponentAnnotator.updateDataTable(new FilterRowTable(filteredTable, new FilterMissingRows()));
 	}
 
 	/**
@@ -179,4 +184,20 @@ public class LabelingEditorNodeDialog<T extends RealType<T> & NativeType<T>, L e
 		super.saveAdditionalSettingsTo(settings);
 	}
 
+	
+	private class FilterMissingRows implements FilterRowGenerator {
+
+		@Override
+		public boolean isIn(DataRow row) {
+			boolean somethingMissing = false;
+			
+			for (DataCell cell : row) {
+				if (cell.isMissing()) {
+					somethingMissing = true;
+				}
+			}
+			
+			return !somethingMissing;
+		}
+	}
 }
