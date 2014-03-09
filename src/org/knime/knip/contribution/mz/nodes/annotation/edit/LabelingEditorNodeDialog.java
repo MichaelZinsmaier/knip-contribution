@@ -184,7 +184,10 @@ public class LabelingEditorNodeDialog<T extends RealType<T> & NativeType<T>, L e
 		super.saveAdditionalSettingsTo(settings);
 	}
 
-	
+	/**
+	 * Filter all rows with missing cells from a data table
+	 * @author Michael Zinsmaier
+	 */
 	private class FilterMissingRows implements FilterRowGenerator {
 
 		@Override

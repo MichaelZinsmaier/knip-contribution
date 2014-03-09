@@ -40,6 +40,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorModeEvent.EditMode;
 import org.knime.knip.core.ui.event.EventService;
 import org.knime.knip.core.ui.imgviewer.ViewerComponent;
 
@@ -57,11 +58,13 @@ public class EditAnnotatorModeSelectionPanel extends ViewerComponent {
             super("Edit Mode", false);           
         
             final JRadioButton addButton = new JRadioButton("Add");
-            final JRadioButton removeButton = new JRadioButton("Remove");
+            final JRadioButton substractButton = new JRadioButton("Substract");
+            final JRadioButton deleteButton = new JRadioButton("Delete");
 
             ButtonGroup group = new ButtonGroup();
             group.add(addButton);
-            group.add(removeButton);
+            group.add(substractButton);
+            group.add(deleteButton);
 
             addButton.setSelected(true);
             
@@ -70,16 +73,25 @@ public class EditAnnotatorModeSelectionPanel extends ViewerComponent {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (addButton.isSelected()) {
-						m_eventService.publish(new EditAnnotatorModeEvent(true));
+						m_eventService.publish(new EditAnnotatorModeEvent(EditMode.ADD));
 					}
 				}
 			});
 
-            removeButton.addActionListener(new ActionListener() {
+            substractButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					if (removeButton.isSelected()) {
-						m_eventService.publish(new EditAnnotatorModeEvent(false));
+					if (substractButton.isSelected()) {
+						m_eventService.publish(new EditAnnotatorModeEvent(EditMode.SUBSTRACT));
+					}
+				}
+			});
+            
+            deleteButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (deleteButton.isSelected()) {
+						m_eventService.publish(new EditAnnotatorModeEvent(EditMode.DELETE));
 					}
 				}
 			});
@@ -96,7 +108,9 @@ public class EditAnnotatorModeSelectionPanel extends ViewerComponent {
             gbc.gridy = 0;
             p.add(addButton, gbc);           
             gbc.gridy = 1;
-            p.add(removeButton, gbc);
+            p.add(substractButton, gbc);
+            gbc.gridy = 2;
+            p.add(deleteButton, gbc);
             
             add(p);
             setMaximumSize(new Dimension(1000000, 100));

@@ -50,9 +50,11 @@ import org.knime.knip.base.data.img.ImgPlusCell;
 import org.knime.knip.base.data.img.ImgPlusValue;
 import org.knime.knip.base.data.labeling.LabelingCell;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingAddManipulationOp;
-import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingRemoveManipulationOp;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingDeleteManipulationOp;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.ops.LabelingSubstractManipulationOp;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorLabelPanel;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorModeEvent;
+import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorModeEvent.EditMode;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorModeSelectionPanel;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorResetConfigEvent;
 import org.knime.knip.contribution.mz.nodes.annotation.edit.views.EditAnnotatorResetPanel;
@@ -105,7 +107,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	
 	private LabelingCell<String> m_currentCell;
 
-	private boolean m_isAddMode = true;
+	private EditMode m_editMode = EditMode.ADD;
 	
 	public LabelAnnotatorView() {
 			createAnnotator();
@@ -233,7 +235,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	
 	@EventListener
 	public void editModeChanged(EditAnnotatorModeEvent e) {
-		m_isAddMode  = e.isAddMode();
+		m_editMode  = e.getMode();
 	}
 
 	@EventListener
@@ -250,18 +252,24 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 
 		IntType emptyLabel = new IntType(0);
 		
-		final Labeling<String> labelingNew = e.getOverlay().renderSegmentationImage(
-				factory, false, NativeTypes.INTTYPE);
+		final Labeling<String> labelingNew = e.getOverlay().renderSegmentationImage(factory, false, NativeTypes.INTTYPE);
 
 		Labeling<String> result;
-		if (m_isAddMode) {
+		if (m_editMode == EditMode.ADD) {
 			BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> add = 
 					new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingAddManipulationOp<String>(emptyLabel));
 			 result = (Labeling<String>) add.compute(m_currentLabeling, labelingNew, m_currentLabeling);
+		} else
+		if (m_editMode == EditMode.SUBSTRACT)
+		{
+			BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> substract = 
+					new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingSubstractManipulationOp<String>(emptyLabel));
+			 result = (Labeling<String>) substract.compute(m_currentLabeling, labelingNew, m_currentLabeling);
 		} else {
-			BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> remove = 
-					new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingRemoveManipulationOp<String>(emptyLabel));
-			 result = (Labeling<String>) remove.compute(m_currentLabeling, labelingNew, m_currentLabeling);
+			//the thrid option DELETE
+			BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>> delete = 
+					new BinaryOperationAssignment<LabelingType<String>, LabelingType<String>, LabelingType<String>>(new LabelingDeleteManipulationOp<String>(emptyLabel));
+			 result = (Labeling<String>) delete.compute(m_currentLabeling, labelingNew, m_currentLabeling);
 		}
 		
 		m_alteredLabelings.put(m_currentKey, result);

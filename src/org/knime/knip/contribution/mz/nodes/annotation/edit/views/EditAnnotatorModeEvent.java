@@ -34,18 +34,16 @@ import org.knime.knip.core.ui.event.KNIPEvent;
  */
 public class EditAnnotatorModeEvent implements KNIPEvent {
 
-	private final boolean m_addMode;
+	public enum EditMode {ADD, DELETE, SUBSTRACT}; 
+	
+	private final EditMode m_mode;
 
-	public EditAnnotatorModeEvent(boolean add) {
-		m_addMode = add;
+	public EditAnnotatorModeEvent(EditMode mode) {
+		m_mode = mode;
 	}
 	
-	public boolean isAddMode() {
-		return m_addMode;
-	}
-	
-	public boolean isRemoveMode() {
-		return !m_addMode;
+	public EditMode getMode() {
+		return m_mode;
 	}
 	
 	@Override

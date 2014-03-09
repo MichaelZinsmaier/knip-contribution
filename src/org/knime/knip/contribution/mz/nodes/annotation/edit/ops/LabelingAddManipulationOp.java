@@ -49,7 +49,7 @@ public class LabelingAddManipulationOp<L extends Comparable<L>> implements
 	public LabelingType<L> compute(LabelingType<L> input,
 			LabelingType<L> addInput, LabelingType<L> output) {
 
-		if (!addInput.getIndex().equals(m_emptyIndex)) {
+		if (addInput.getIndex().getInteger() != m_emptyIndex.getInteger()) {
 				List<L> labelings = new ArrayList<L>(input.getLabeling());
 				for (L label : addInput.getLabeling()) {
 					if (!labelings.contains(label)) {
