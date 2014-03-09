@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -115,9 +116,36 @@ public class EditAnnotatorLabelPanel extends ViewerComponent {
             
             if (differ) {
             	//only loose the selection if the labels changed
+            	List<String> lastSelection = m_jLabelList.getSelectedValuesList();
+            	
             	m_labels.clear();
             	m_labels = newLabels;
             	m_jLabelList.setListData(m_labels);
+            	if (m_labels.size() > 0) {
+            		//try to restore from the last selection (take all that still exist)
+            		boolean selectFirst = true;
+            		if (lastSelection != null) {
+            			int[] indices = new int[lastSelection.size()];
+            			
+            			int i = 0;
+            			for (String ls : lastSelection) {
+            				indices[i] = m_labels.indexOf(ls);
+            				if (indices[i] != -1) {
+            					selectFirst = false;
+            				}
+            				i++;
+            			}
+            			
+            			if (!selectFirst) {
+            				m_jLabelList.setSelectedIndices(indices);
+            			}
+            		}
+            		
+            		if (selectFirst) { 
+            			//if everything else fails select the first label in the list
+            			m_jLabelList.setSelectedIndex(0);
+            		}
+            	}
             }
         }
 

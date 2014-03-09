@@ -69,6 +69,7 @@ import org.knime.knip.core.ui.imgviewer.annotator.RowColKey;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorResetEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.events.AnnotatorRowColKeyChgEvent;
 import org.knime.knip.core.ui.imgviewer.annotator.tools.AnnotatorFreeFormTool;
+import org.knime.knip.core.ui.imgviewer.annotator.tools.AnnotatorNoTool;
 import org.knime.knip.core.ui.imgviewer.annotator.tools.AnnotatorRectangleTool;
 import org.knime.knip.core.ui.imgviewer.events.ImgRedrawEvent;
 import org.knime.knip.core.ui.imgviewer.events.ImgWithMetadataChgEvent;
@@ -142,12 +143,11 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 	@Override
 	protected JComponent createAnnotatorComponent() {
 		ImgViewer annotator = new ImgViewer();
-		annotator
-				.addViewerComponent(new AWTImageProvider(0, new OverlayRU<String>(new CombinedRU(new ImageRU<T>(true), new LabelingRU<String>()))));
+		annotator.addViewerComponent(new AWTImageProvider(0, new OverlayRU<String>(new CombinedRU(new ImageRU<T>(true), new LabelingRU<String>()))));
 		annotator.addViewerComponent(m_liveManager);
 		annotator.addViewerComponent(new EditAnnotatorLabelPanel());
 		annotator.addViewerComponent(new EditAnnotatorModeSelectionPanel());
-		annotator.addViewerComponent(new AnnotatorToolbar(new AnnotatorRectangleTool(), new AnnotatorFreeFormTool()));
+		annotator.addViewerComponent(new AnnotatorToolbar(new AnnotatorNoTool("Pan"), new AnnotatorRectangleTool(), new AnnotatorFreeFormTool()));
 		annotator.addViewerComponent(new EditAnnotatorResetPanel());
 		annotator.addViewerComponent(new AnnotatorMinimapPanel());
 		annotator.addViewerComponent(new ImgNormalizationPanel<T, Img<T>>());
@@ -198,10 +198,10 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 		}
 		
 		m_currentKey = rowOnlyKey;
-
+		
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
 		m_eventService.publish(new AnnotatorRowColKeyChgEvent(rowOnlyKey));
-		m_eventService.publish(new ImgRedrawEvent());		
+		m_eventService.publish(new ImgRedrawEvent());
 	}
 
 	private void initFromCurrentCell() {
