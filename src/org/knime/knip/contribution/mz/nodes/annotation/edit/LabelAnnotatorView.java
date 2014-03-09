@@ -240,7 +240,7 @@ public class LabelAnnotatorView<T extends RealType<T> & NativeType<T>> extends A
 
 	@EventListener
 	public void resetEvent(EditAnnotatorResetConfigEvent e) {
-		m_alteredLabelings.clear();
+		m_alteredLabelings.remove(m_currentKey);
 		initFromCurrentCell();
 		m_eventService.publish(new LabelingWithMetadataChgEvent<String>(m_currentLabeling, m_currentCell.getLabelingMetadata()));
 		m_eventService.publish(new ImgRedrawEvent());

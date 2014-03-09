@@ -38,6 +38,7 @@ import java.io.ObjectOutput;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
@@ -58,11 +59,18 @@ public class EditAnnotatorResetPanel extends ViewerComponent {
         public EditAnnotatorResetPanel() {
             super("", false);           
 
-            JButton resetConfig = new JButton("Reset All Labels");
+            JButton resetConfig = new JButton("Reset to Input");
             resetConfig.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					m_eventService.publish(new EditAnnotatorResetConfigEvent());
+					int selected = JOptionPane.showConfirmDialog(null,
+						    "All changes of the selected labeling will be lost! Continue?",
+						    "Warning",
+						    JOptionPane.YES_NO_OPTION);
+					
+					if (selected == JOptionPane.YES_OPTION) {
+						m_eventService.publish(new EditAnnotatorResetConfigEvent());
+					}
 				}
 			});
             
